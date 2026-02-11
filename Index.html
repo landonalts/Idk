@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LanChat — Lobby & Global Chat</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+  }
+
+  #app {
+    background: rgba(0,0,0,0.45);
+    border-radius: 16px;
+    max-width: 520px;
+    width: 100%;
+    padding: 2rem;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+
+  h1 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+  }
+
+  .hidden {
+    display: none;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    border-radius: 12px;
+    border: none;
+    font-size: 1rem;
+    font-weight: 600;
+    outline: none;
+    transition: box-shadow 0.3s ease;
+  }
+
+  input[type="text"]:focus {
+    box-shadow: 0 0 8px #ffd369;
+  }
+
+  button {
+    background: #ffd369;
+    border: none;
+    padding: 0.75rem 1rem;
+    width: 100%;
+    border-radius: 12px;
+    font-weight: 700;
+    color: #2d2d2d;
+    font-size: 1rem;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(255, 211, 105, 0.6);
+    transition: background 0.3s ease, color 0.3s ease;
+    margin-bottom: 1rem;
+  }
+
+  button:hover {
+    background: #ffb800;
+    color: #1a1a1a;
+  }
+
+  #lobbyHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+
+  #lobbyCode {
+    font-weight: 700;
+    font-size: 1.25rem;
+    letter-spacing: 4px;
+    text-shadow: 0 0 8px #ffd369;
+  }
+
+  #playerCount {
+    font-style: italic;
+    color: #ffd369;
+  }
+
+  #messages {
+    background: rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 1rem;
+    height: 320px;
+    overflow-y: auto;
+    margin-bottom: 1rem;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.25);
+    white-space: pre-wrap;
+  }
+
+  .message {
+    margin-bottom: 0.75rem;
+    max-width: 80%;
+    padding: 0.5rem 0.75rem;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.15);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    font-weight: 600;
+    word-wrap: break-word;
+  }
+
+  .message.self {
+    background: #ffd369;
+    color: #2d2d2d;
+    margin-left: auto;
+    box-shadow: 0 1px 5px rgba(255, 211, 105, 0.9);
+  }
+
+  #chatInput {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  /* Bigger chat input box */
+  #chatMessageInput {
+    flex-grow: 1;
+    font-size: 1.2rem;
+    padding: 1rem 1.25rem;
+    border-radius: 12px;
+    border: none;
+    outline: none;
+    font-weight: 600;
+    min-height: 48px;
+    resize: none;
+    line-height: 1.4;
+  }
+
+  #sendMessageBtn {
+    flex-shrink: 0;
+    width: 100px;
+  }
+
+  #leaveLobbyBtn {
+    background: #e53e3e;
+    margin-top: 1rem;
+    box-shadow: 0 4px 10px rgba(229, 62, 62, 0.7);
+  }
+
+  /* Scrollbar styling */
+  #messages::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  #messages::-webkit-scrollbar-thumb {
+    background: rgba(255, 211, 105, 0.6);
+    border-radius: 8px;
+  }
+
+  #messages::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  /* Tabs for chat selection */
+  #chatTabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .tabBtn {
+    flex-grow: 1;
+    padding: 0.5rem 1rem;
+    background: #444;
+    color: #ddd;
+    font-weight: 700;
+    border-radius: 12px;
+    cursor: pointer;
+    user-select: none;
+    text-align: center;
+    transition: background 0.3s ease;
+  }
+
+  .tabBtn.active {
+    background: #ffd369;
+    color: #2d2d2d;
+    box-shadow: 0 4px 10px rgba(255, 211, 105, 0.6);
+  }
+
+  /* Admin GUI */
+  #adminGui {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-top: 1rem;
+    color: #ffd369;
+  }
+
+  #lobbyList {
+    margin-top: 0.75rem;
+    max-height: 150px;
+    overflow-y: auto;
+    background: rgba(0,0,0,0.25);
+    padding: 0.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    white-space: pre-wrap;
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <h1>LanChat</h1>
+
+  <!-- Username input and join/create lobby -->
+  <div id="frontPage">
+    <input type="text" id="nameInput" placeholder="Enter your name (max 20 chars)" maxlength="20" autocomplete="off" />
+    <button id="proceedBtn">Proceed</button>
+  </div>
+
+  <!-- After username chosen -->
+  <div id="chatChoicePage" class="hidden">
+    <button id="createLobbyBtn">Create Lobby</button>
+    <input type="text" id="joinLobbyInput" placeholder="Enter lobby code (6 letters)" maxlength="6" autocomplete="off" style="text-transform: uppercase;" />
+    <button id="joinLobbyBtn">Join Lobby</button>
+    <button id="joinGlobalBtn">Join Global Chat</button>
+  </div>
+
+  <!-- Lobby chat page -->
+  <div id="lobbyPage" class="hidden" aria-live="polite">
+    <div id="lobbyHeader">
+      <div>Lobby Code: <span id="lobbyCode"></span></div>
+      <div id="playerCount">Players: 0</div>
+    </div>
+
+    <!-- Chat tabs -->
+    <div id="chatTabs">
+      <div class="tabBtn active" data-chat="lobby">Lobby Chat</div>
+      <div class="tabBtn" data-chat="global">Global Chat</div>
+    </div>
+
+    <div id="messages" role="log" aria-live="polite" aria-relevant="additions"></div>
+
+    <div id="chatInput">
+      <input type="text" id="chatMessageInput" placeholder="Type your message..." maxlength="200" autocomplete="off" />
+      <button id="sendMessageBtn">Send</button>
+    </div>
+
+    <button id="leaveLobbyBtn">Leave Lobby</button>
+  </div>
+
+  <!-- Global chat page -->
+  <div id="globalPage" class="hidden" aria-live="polite">
+    <h2 style="text-align:center; margin-bottom:1rem;">Global Chat</h2>
+
+    <div id="globalMessages" role="log" aria-live="polite" aria-relevant="additions" style="
+      background: rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 1rem;
+      height: 320px;
+      overflow-y: auto;
+      margin-bottom: 1rem;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.25);
+      white-space: pre-wrap;
+      font-weight: 600;
+    "></div>
+
+    <div id="globalChatInput" style="display:flex; gap:0.75rem;">
+      <input type="text" id="globalMessageInput" placeholder="Type your message..." maxlength="200" autocomplete="off" style="flex-grow:1; font-size:1.2rem; padding:1rem 1.25rem; border-radius:12px; border:none; outline:none; font-weight:600;" />
+      <button id="sendGlobalMessageBtn" style="width:100px;">Send</button>
+    </div>
+
+    <button id="leaveGlobalBtn" style="background:#e53e3e; margin-top:1rem; box-shadow:0 4px 10px rgba(229,62,62,0.7);">Leave Global Chat</button>
+  </div>
+
+  <!-- Admin GUI -->
+  <div id="adminGui" class="hidden" aria-label="Admin Panel">
+    <h3>Admin Panel</h3>
+    <button id="listLobbiesBtn">List Lobbies</button>
+    <div id="lobbyList" aria-live="polite" aria-relevant="additions"></div>
+  </div>
+</div>
+
+<!-- Firebase and script -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+  // Firebase configuration (Replace with your actual config)
+  const firebaseConfig = {
+  apiKey: "AIzaSyAdssAURPfxQKdi7KbAlSisH0j34J8A144",
+  authDomain: "landkit-5e55b.firebaseapp.com",
+  projectId: "landkit-5e55b",
+  storageBucket: "landkit-5e55b.appspot.com",
+  messagingSenderId: "920665056429",
+  appId: "1:920665056429:web:c3c134404d735df9275224",
+  measurementId: "G-BHFXJDEBQE"
+};
+
+
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  // Elements
+  const nameInput = document.getElementById('nameInput');
+  const proceedBtn = document.getElementById('proceedBtn');
+  const frontPage = document.getElementById('frontPage');
+  const chatChoicePage = document.getElementById('chatChoicePage');
+  const createLobbyBtn = document.getElementById('createLobbyBtn');
+  const joinLobbyInput = document.getElementById('joinLobbyInput');
+  const joinLobbyBtn = document.getElementById('joinLobbyBtn');
+  const joinGlobalBtn = document.getElementById('joinGlobalBtn');
+  const lobbyPage = document.getElementById('lobbyPage');
+  const lobbyCodeSpan = document.getElementById('lobbyCode');
+  const playerCountSpan = document.getElementById('playerCount');
+  const messagesDiv = document.getElementById('messages');
+  const chatMessageInput = document.getElementById('chatMessageInput');
+  const sendMessageBtn = document.getElementById('sendMessageBtn');
+  const leaveLobbyBtn = document.getElementById('leaveLobbyBtn');
+  const globalPage = document.getElementById('globalPage');
+  const globalMessagesDiv = document.getElementById('globalMessages');
+  const globalMessageInput = document.getElementById('globalMessageInput');
+  const sendGlobalMessageBtn = document.getElementById('sendGlobalMessageBtn');
+  const leaveGlobalBtn = document.getElementById('leaveGlobalBtn');
+  const chatTabs = document.querySelectorAll('.tabBtn');
+  const adminGui = document.getElementById('adminGui');
+  const listLobbiesBtn = document.getElementById('listLobbiesBtn');
+  const lobbyListDiv = document.getElementById('lobbyList');
+
+  // State
+  let username = null;
+  let currentLobby = null;
+  let unsubscribeLobby = null;
+  let unsubscribeGlobal = null;
+  let activeChat = 'lobby'; // or 'global'
+
+  // Helper: generate 6 uppercase letter code for lobby
+  function generateLobbyCode() {
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    let code = '';
+    for(let i=0; i<6; i++) {
+      code += letters.charAt(Math.floor(Math.random()*letters.length));
+    }
+    return code;
+  }
+
+  // Show/hide admin GUI if user is admin1
+  function updateAdminGuiVisibility() {
+    if(username === 'admin1') {
+      adminGui.classList.remove('hidden');
+    } else {
+      adminGui.classList.add('hidden');
+    }
+  }
+
+  // Switch chat tabs
+  chatTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      chatTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      activeChat = tab.dataset.chat;
+      renderMessages();
+    });
+  });
+
+  // Store messages for lobby and global separately (for demo, store in memory)
+  let lobbyMessages = [];
+  let globalMessages = [];
+
+  // Proceed from name input
+  proceedBtn.addEventListener('click', () => {
+    const val = nameInput.value.trim();
+    if(val && val.length <= 20) {
+      username = val;
+      frontPage.classList.add('hidden');
+      chatChoicePage.classList.remove('hidden');
+      updateAdminGuiVisibility();
+    } else {
+      alert('Please enter a valid name (max 20 characters).');
+    }
+  });
+
+  // Create lobby
+  createLobbyBtn.addEventListener('click', async () => {
+    const code = generateLobbyCode();
+    try {
+      // Create lobby document
+      await db.collection('lobbies').doc(code).set({
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        players: [username]
+      });
+      joinLobby(code);
+    } catch(e) {
+      alert('Error creating lobby: ' + e.message);
+    }
+  });
+
+  // Join lobby by code
+  joinLobbyBtn.addEventListener('click', async () => {
+    const code = joinLobbyInput.value.trim().toUpperCase();
+    if(code.length !== 6) {
+      alert('Lobby code must be 6 letters.');
+      return;
+    }
+    try {
+      const doc = await db.collection('lobbies').doc(code).get();
+      if(!doc.exists) {
+        alert('Lobby does not exist.');
+        return;
+      }
+      joinLobby(code);
+    } catch(e) {
+      alert('Error joining lobby: ' + e.message);
+    }
+  });
+
+  // Join global chat
+  joinGlobalBtn.addEventListener('click', () => {
+    chatChoicePage.classList.add('hidden');
+    globalPage.classList.remove('hidden');
+    subscribeGlobalChat();
+  });
+
+  // Join lobby function
+  async function joinLobby(code) {
+    currentLobby = code;
+    chatChoicePage.classList.add('hidden');
+    lobbyPage.classList.remove('hidden');
+    lobbyCodeSpan.textContent = code;
+
+    // Add player to lobby's players array (transaction for safety)
+    const lobbyRef = db.collection('lobbies').doc(code);
+    await db.runTransaction(async (transaction) => {
+      const lobbyDoc = await transaction.get(lobbyRef);
+      if(!lobbyDoc.exists) throw new Error("Lobby not found");
+      let players = lobbyDoc.data().players || [];
+      if(!players.includes(username)) {
+        players.push(username);
+      }
+      transaction.update(lobbyRef, { players });
+    });
+
+    subscribeLobbyChat(code);
+    updateAdminGuiVisibility();
+  }
+
+  // Subscribe to lobby chat messages & players
+  function subscribeLobbyChat(code) {
+    if(unsubscribeLobby) unsubscribeLobby();
+
+    // Listen to lobby doc for players count updates
+    const lobbyRef = db.collection('lobbies').doc(code);
+
+    unsubscribeLobby = lobbyRef.onSnapshot(snapshot => {
+      if(!snapshot.exists) {
+        alert('Lobby was deleted or does not exist.');
+        leaveLobby();
+        return;
+      }
+      const data = snapshot.data();
+      playerCountSpan.textContent = `Players: ${data.players ? data.players.length : 0}`;
+    });
+
+    // Listen to messages subcollection
+    db.collection('lobbies').doc(code).collection('messages').orderBy('timestamp')
+      .onSnapshot(snapshot => {
+        lobbyMessages = [];
+        snapshot.forEach(doc => {
+          lobbyMessages.push(doc.data());
+        });
+        if(activeChat === 'lobby') renderMessages();
+      });
+  }
+
+  // Subscribe to global chat
+  function subscribeGlobalChat() {
+    if(unsubscribeGlobal) unsubscribeGlobal();
+
+    unsubscribeGlobal = db.collection('globalMessages').orderBy('timestamp').onSnapshot(snapshot => {
+      globalMessages = [];
+      snapshot.forEach(doc => {
+        globalMessages.push(doc.data());
+      });
+      if(activeChat === 'global') renderMessages();
+      renderGlobalMessages();
+    });
+  }
+
+  // Render messages in lobby or global chat based on active tab
+  function renderMessages() {
+    if(activeChat === 'lobby') {
+      messagesDiv.innerHTML = '';
+      lobbyMessages.forEach(msg => {
+        const msgDiv = document.createElement('div');
+        msgDiv.classList.add('message');
+        if(msg.username === username) msgDiv.classList.add('self');
+        msgDiv.textContent = `${msg.username}: ${msg.text}`;
+        messagesDiv.appendChild(msgDiv);
+      });
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    } else {
+      renderGlobalMessages();
+    }
+  }
+
+  // Render global chat messages
+  function renderGlobalMessages() {
+    globalMessagesDiv.innerHTML = '';
+    globalMessages.forEach(msg => {
+      const msgDiv = document.createElement('div');
+      msgDiv.classList.add('message');
+      if(msg.username === username) msgDiv.classList.add('self');
+      msgDiv.textContent = `${msg.username}: ${msg.text}`;
+      globalMessagesDiv.appendChild(msgDiv);
+    });
+    globalMessagesDiv.scrollTop = globalMessagesDiv.scrollHeight;
+  }
+
+  // Send lobby message
+  sendMessageBtn.addEventListener('click', async () => {
+    const text = chatMessageInput.value.trim();
+    if(!text) return;
+    if(!currentLobby) return alert('Not in a lobby');
+
+    try {
+      await db.collection('lobbies').doc(currentLobby).collection('messages').add({
+        username,
+        text,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      chatMessageInput.value = '';
+    } catch(e) {
+      alert('Error sending message: ' + e.message);
+    }
+  });
+
+  // Send message on Enter key in lobby chat input
+  chatMessageInput.addEventListener('keydown', e => {
+    if(e.key === 'Enter') {
+      e.preventDefault();
+      sendMessageBtn.click();
+    }
+  });
+
+  // Send global message
+  sendGlobalMessageBtn.addEventListener('click', async () => {
+    const text = globalMessageInput.value.trim();
+    if(!text) return;
+
+    try {
+      await db.collection('globalMessages').add({
+        username,
+        text,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      globalMessageInput.value = '';
+    } catch(e) {
+      alert('Error sending global message: ' + e.message);
+    }
+  });
+
+  // Send message on Enter key in global chat input
+  globalMessageInput.addEventListener('keydown', e => {
+    if(e.key === 'Enter') {
+      e.preventDefault();
+      sendGlobalMessageBtn.click();
+    }
+  });
+
+  // Leave lobby
+  leaveLobbyBtn.addEventListener('click', async () => {
+    leaveLobby();
+  });
+
+  async function leaveLobby() {
+    if(!currentLobby) return;
+    // Remove player from players array
+    const lobbyRef = db.collection('lobbies').doc(currentLobby);
+    await db.runTransaction(async (transaction) => {
+      const lobbyDoc = await transaction.get(lobbyRef);
+      if(!lobbyDoc.exists) return;
+      let players = lobbyDoc.data().players || [];
+      players = players.filter(p => p !== username);
+      transaction.update(lobbyRef, { players });
+    });
+    if(unsubscribeLobby) unsubscribeLobby();
+    currentLobby = null;
+    lobbyMessages = [];
+    messagesDiv.innerHTML = '';
+    lobbyPage.classList.add('hidden');
+    chatChoicePage.classList.remove('hidden');
+  }
+
+  // Leave global chat
+  leaveGlobalBtn.addEventListener('click', () => {
+    if(unsubscribeGlobal) unsubscribeGlobal();
+    globalMessages = [];
+    globalMessagesDiv.innerHTML = '';
+    globalPage.classList.add('hidden');
+    chatChoicePage.classList.remove('hidden');
+  });
+
+  // Admin: List all lobby codes
+  listLobbiesBtn.addEventListener('click', async () => {
+    lobbyListDiv.textContent = 'Loading...';
+    try {
+      const snapshot = await db.collection('lobbies').get();
+      if(snapshot.empty) {
+        lobbyListDiv.textContent = 'No lobbies found.';
+        return;
+      }
+      let listText = '';
+      snapshot.forEach(doc => {
+        listText += doc.id + '\n';
+      });
+      lobbyListDiv.textContent = listText.trim();
+    } catch(e) {
+      lobbyListDiv.textContent = 'Error fetching lobbies: ' + e.message;
+    }
+  });
+</script>
+
+</body>
+</html>
