@@ -1,235 +1,186 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Chess.org Login</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LanChat</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
-
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    font-family: 'Poppins', sans-serif;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: #fff;
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 1rem;
-  }
-  #app {
-    background: rgba(0,0,0,0.45);
-    border-radius: 16px;
-    max-width: 520px;
-    width: 100%;
-    padding: 2rem;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-  }
-  h1 {
-    text-align: center;
-    margin-bottom: 1.5rem;
-    font-weight: 600;
-    letter-spacing: 2px;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
-  }
+  body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 0; }
   .hidden { display: none; }
-  input[type="text"] {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    margin-bottom: 1rem;
-    border-radius: 12px;
-    border: none;
-    font-size: 1rem;
-    font-weight: 600;
-    outline: none;
-  }
-  button {
-    background: #ffd369;
-    border: none;
-    padding: 0.75rem 1rem;
-    width: 100%;
-    border-radius: 12px;
-    font-weight: 700;
-    color: #2d2d2d;
-    font-size: 1rem;
-    cursor: pointer;
-    margin-bottom: 1rem;
-  }
-  button:hover { background: #ffb800; color: #1a1a1a; }
-
-  #messages, #globalMessages {
-    background: rgba(255,255,255,0.1);
-    border-radius: 12px;
-    padding: 1rem;
-    height: 320px;
-    overflow-y: auto;
-    margin-bottom: 1rem;
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.25);
-    white-space: pre-wrap;
-    font-weight: 600;
-  }
-
-  .message { margin-bottom: 0.75rem; max-width: 80%; padding: 0.5rem 0.75rem; border-radius: 12px; background: rgba(255,255,255,0.15); }
-  .message.self { background: #ffd369; color: #2d2d2d; margin-left: auto; }
+  #chatChoicePage, #globalPage, #lobbyPage { padding: 20px; }
+  input { padding: 8px; margin: 5px; width: 200px; }
+  button { padding: 8px 12px; margin: 5px; }
+  #globalMessages, #lobbyMessages { border: 1px solid #ccc; padding: 10px; height: 200px; overflow-y: scroll; background: #fff; margin-bottom: 10px; }
+  .message { margin: 5px 0; }
+  .message span { font-weight: bold; margin-right: 5px; }
 </style>
 </head>
 <body>
-<div id="app">
-  <h1>Chess.org Login</h1>
 
-  <!-- Username input with CAPTCHA -->
-  <div id="frontPage">
-    <input type="text" id="nameInput" placeholder="Enter your name (max 20 chars)" maxlength="20" autocomplete="off" />
-    <div id="captchaContainer" style="margin-bottom:1rem;">
-      <canvas id="captchaCanvas" width="150" height="50" style="background:#fff; display:block; margin-bottom:0.5rem;"></canvas>
-      <input type="text" id="captchaInput" placeholder="Enter CAPTCHA" autocomplete="off" />
-      <button id="refreshCaptcha">Refresh CAPTCHA</button>
-    </div>
-    <button id="proceedBtn">Proceed</button>
-  </div>
-
-  <!-- Chat choice -->
-  <div id="chatChoicePage" class="hidden">
-    <button id="createLobbyBtn">Create Lobby</button>
-    <input type="text" id="joinLobbyInput" placeholder="Enter lobby code (6 letters)" maxlength="6" style="text-transform:uppercase;" />
-    <button id="joinLobbyBtn">Join Lobby</button>
-    <button id="joinGlobalBtn">Join Global Chat</button>
-  </div>
-
-  <!-- Lobby chat -->
-  <div id="lobbyPage" class="hidden">
-    <div id="lobbyHeader">
-      Lobby Code: <span id="lobbyCode"></span>
-      <span id="playerCount">Players: 0</span>
-    </div>
-    <div id="messages"></div>
-    <div id="chatInput" style="display:flex; gap:0.5rem;">
-      <input type="text" id="chatMessageInput" placeholder="Type your message..." maxlength="200" style="flex-grow:1;" />
-      <button id="sendMessageBtn">Send</button>
-      <button id="clearChatBtn">Clear Chat</button>
-    </div>
-    <button id="leaveLobbyBtn" style="background:#e53e3e;">Leave Lobby</button>
-  </div>
-
-  <!-- Global chat -->
-  <div id="globalPage" class="hidden">
-    <h2 style="text-align:center;">Global Chat</h2>
-    <div id="globalMessages"></div>
-    <div id="globalChatInput" style="display:flex; gap:0.5rem;">
-      <input type="text" id="globalMessageInput" placeholder="Type your message..." maxlength="200" style="flex-grow:1;" />
-      <button id="sendGlobalMessageBtn">Send</button>
-    </div>
-    <button id="leaveGlobalBtn" style="background:#e53e3e;">Leave Global Chat</button>
-  </div>
+<!-- Login / Choice Page -->
+<div id="chatChoicePage">
+  <h2>Welcome to LanChat</h2>
+  <input id="usernameInput" placeholder="Enter your name"/>
+  <button id="captchaBtn">Complete CAPTCHA</button>
+  <br>
+  <button id="joinGlobalBtn">Join Global Chat</button>
+  <br><br>
+  <input id="joinLobbyInput" placeholder="Lobby Code (6 letters)"/>
+  <button id="joinLobbyBtn">Join Lobby</button>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<!-- Global Chat Page -->
+<div id="globalPage" class="hidden">
+  <h2>Global Chat</h2>
+  <div id="globalMessages"></div>
+  <input id="globalMsgInput" placeholder="Type message"/>
+  <button id="sendGlobalBtn">Send</button>
+  <br>
+  <button id="backFromGlobal">Back</button>
+</div>
+
+<!-- Lobby Chat Page -->
+<div id="lobbyPage" class="hidden">
+  <h2>Lobby: <span id="lobbyCodeSpan"></span></h2>
+  <div id="lobbyMessages"></div>
+  <input id="lobbyMsgInput" placeholder="Type message"/>
+  <button id="sendLobbyBtn">Send</button>
+  <br>
+  <button id="backFromLobby">Back</button>
+</div>
+
 <script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyAdssAURPfxQKdi7KbAlSisH0j34J8A144",
-    authDomain: "landkit-5e55b.firebaseapp.com",
-    projectId: "landkit-5e55b",
-    storageBucket: "landkit-5e55b.appspot.com",
-    messagingSenderId: "920665056429",
-    appId: "1:920665056429:web:c3c134404d735df9275224"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+// --- Variables ---
+let username = '';
+let captchaPassed = false;
+let activeChat = null;
+let currentLobby = null;
 
-  // Elements
-  const nameInput = document.getElementById('nameInput');
-  const proceedBtn = document.getElementById('proceedBtn');
-  const frontPage = document.getElementById('frontPage');
-  const chatChoicePage = document.getElementById('chatChoicePage');
-  const createLobbyBtn = document.getElementById('createLobbyBtn');
-  const joinLobbyInput = document.getElementById('joinLobbyInput');
-  const joinLobbyBtn = document.getElementById('joinLobbyBtn');
-  const joinGlobalBtn = document.getElementById('joinGlobalBtn');
-  const lobbyPage = document.getElementById('lobbyPage');
-  const lobbyCodeSpan = document.getElementById('lobbyCode');
-  const playerCountSpan = document.getElementById('playerCount');
-  const messagesDiv = document.getElementById('messages');
-  const chatMessageInput = document.getElementById('chatMessageInput');
-  const sendMessageBtn = document.getElementById('sendMessageBtn');
-  const clearChatBtn = document.getElementById('clearChatBtn');
-  const leaveLobbyBtn = document.getElementById('leaveLobbyBtn');
-  const globalPage = document.getElementById('globalPage');
-  const globalMessagesDiv = document.getElementById('globalMessages');
-  const globalMessageInput = document.getElementById('globalMessageInput');
-  const sendGlobalMessageBtn = document.getElementById('sendGlobalMessageBtn');
-  const leaveGlobalBtn = document.getElementById('leaveGlobalBtn');
+// Bad-word filter
+const badWords = ['badword1', 'badword2'];
+function filterMessage(msg) {
+  let filtered = msg;
+  badWords.forEach(word => {
+    const regex = new RegExp(word, 'gi');
+    filtered = filtered.replace(regex, '*'.repeat(word.length));
+  });
+  return filtered;
+}
 
-  // CAPTCHA
-  const captchaCanvas = document.getElementById('captchaCanvas');
-  const captchaInput = document.getElementById('captchaInput');
-  const refreshCaptchaBtn = document.getElementById('refreshCaptcha');
-  let captchaText = '';
+// --- Elements ---
+const usernameInput = document.getElementById('usernameInput');
+const captchaBtn = document.getElementById('captchaBtn');
+const joinGlobalBtn = document.getElementById('joinGlobalBtn');
+const joinLobbyBtn = document.getElementById('joinLobbyBtn');
+const joinLobbyInput = document.getElementById('joinLobbyInput');
 
-  function generateCaptcha() {
-    const ctx = captchaCanvas.getContext('2d');
-    ctx.clearRect(0,0,captchaCanvas.width,captchaCanvas.height);
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    captchaText = '';
-    for(let i=0;i<5;i++){ captchaText += chars[Math.floor(Math.random()*chars.length)]; }
-    ctx.font = '30px Arial'; ctx.fillStyle = '#000';
-    ctx.fillText(captchaText, 20, 35);
+const chatChoicePage = document.getElementById('chatChoicePage');
+const globalPage = document.getElementById('globalPage');
+const lobbyPage = document.getElementById('lobbyPage');
+const lobbyCodeSpan = document.getElementById('lobbyCodeSpan');
+
+const globalMessages = document.getElementById('globalMessages');
+const lobbyMessages = document.getElementById('lobbyMessages');
+
+const globalMsgInput = document.getElementById('globalMsgInput');
+const sendGlobalBtn = document.getElementById('sendGlobalBtn');
+
+const lobbyMsgInput = document.getElementById('lobbyMsgInput');
+const sendLobbyBtn = document.getElementById('sendLobbyBtn');
+
+const backFromGlobal = document.getElementById('backFromGlobal');
+const backFromLobby = document.getElementById('backFromLobby');
+
+// --- CAPTCHA Simulation ---
+captchaBtn.addEventListener('click', () => {
+  if(!usernameInput.value.trim()) {
+    alert('Enter a name first!');
+    return;
   }
-  refreshCaptchaBtn.addEventListener('click', generateCaptcha);
-  generateCaptcha();
+  username = usernameInput.value.trim();
+  captchaPassed = true;
+  alert('CAPTCHA completed!');
+});
 
-  // Bad words list (partial example)
-  const badWords = ['abbo','abo','abortion','ass','bitch','cunt','fuck','shit','nigger']; // etc
-  function censor(text) {
-    let censored = text;
-    badWords.forEach(word => {
-      const regex = new RegExp(`\\b${word}\\b`, 'gi');
-      censored = censored.replace(regex,'****');
-    });
-    return censored;
+// --- Join Global Chat ---
+joinGlobalBtn.addEventListener('click', () => {
+  if(!username || !captchaPassed) {
+    alert('Complete CAPTCHA and enter your name first.');
+    return;
+  }
+  chatChoicePage.classList.add('hidden');
+  globalPage.classList.remove('hidden');
+  activeChat = 'global';
+  appendMessage(globalMessages, 'System', `You joined Global Chat`);
+});
+
+// --- Join Lobby ---
+joinLobbyBtn.addEventListener('click', () => {
+  if(!username || !captchaPassed) {
+    alert('Complete CAPTCHA and enter your name first.');
+    return;
+  }
+  const code = joinLobbyInput.value.trim().toUpperCase();
+  if(code.length !== 6) {
+    alert('Lobby code must be 6 letters.');
+    return;
   }
 
-  // State
-  let username = null;
-  let currentLobby = null;
-  let lastClear = 0; // timestamp for cooldown
+  if(currentLobby) leaveLobby();
 
-  // Proceed button with CAPTCHA check
-  proceedBtn.addEventListener('click', () => {
-    const val = nameInput.value.trim();
-    if(!val || val.length > 20){ alert('Enter valid name'); return; }
-    if(captchaInput.value.trim().toUpperCase() !== captchaText){ alert('CAPTCHA incorrect'); generateCaptcha(); return; }
-    username = val;
-    frontPage.classList.add('hidden');
-    chatChoicePage.classList.remove('hidden');
-  });
+  currentLobby = code;
+  lobbyCodeSpan.textContent = code;
+  chatChoicePage.classList.add('hidden');
+  lobbyPage.classList.remove('hidden');
+  activeChat = 'lobby';
+  appendMessage(lobbyMessages, 'System', `You joined Lobby ${code}`);
+});
 
-  // Send lobby message
-  sendMessageBtn.addEventListener('click', async () => {
-    if(!chatMessageInput.value.trim()) return;
-    const text = censor(chatMessageInput.value.trim());
-    await db.collection('lobbies').doc(currentLobby).collection('messages').add({
-      username, text, timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    chatMessageInput.value = '';
-  });
+// --- Leave Lobby ---
+function leaveLobby() {
+  currentLobby = null;
+  lobbyMessages.innerHTML = '';
+}
 
-  // Clear chat button
-  clearChatBtn.addEventListener('click', async () => {
-    const now = Date.now();
-    if(now - lastClear < 10*60*1000){ alert('Wait 10 minutes between clears'); return; }
-    if(!currentLobby) return;
-    const snapshot = await db.collection('lobbies').doc(currentLobby).collection('messages').get();
-    const batch = db.batch();
-    snapshot.forEach(doc => batch.delete(doc.ref));
-    await batch.commit();
-    lastClear = now;
-    alert('Chat cleared for everyone');
-  });
+// --- Send Messages ---
+sendGlobalBtn.addEventListener('click', () => {
+  const msg = globalMsgInput.value.trim();
+  if(!msg) return;
+  const filtered = filterMessage(msg);
+  appendMessage(globalMessages, username, filtered);
+  globalMsgInput.value = '';
+});
 
-  // Other chat, lobby join, global chat, etc. remains similar
+sendLobbyBtn.addEventListener('click', () => {
+  const msg = lobbyMsgInput.value.trim();
+  if(!msg) return;
+  const filtered = filterMessage(msg);
+  appendMessage(lobbyMessages, username, filtered);
+  lobbyMsgInput.value = '';
+});
+
+// --- Append Message Function ---
+function appendMessage(container, sender, msg) {
+  const div = document.createElement('div');
+  div.className = 'message';
+  div.innerHTML = `<span>${sender}:</span> ${msg}`;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+// --- Back Buttons ---
+backFromGlobal.addEventListener('click', () => {
+  globalPage.classList.add('hidden');
+  chatChoicePage.classList.remove('hidden');
+  activeChat = null;
+});
+
+backFromLobby.addEventListener('click', () => {
+  lobbyPage.classList.add('hidden');
+  chatChoicePage.classList.remove('hidden');
+  leaveLobby();
+  activeChat = null;
+});
 </script>
 </body>
 </html>
